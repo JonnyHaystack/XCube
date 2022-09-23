@@ -1,0 +1,6 @@
+[submodule "lib/tusb_xinput"]
+	path = lib/tusb_xinput
+	url = https://github.com/Ryzee119/tusb_xinput
+[submodule "lib/joybus-pio"]
+	path = lib/joybus-pio
+	url = https://github.com/JonnyHaystack/joybus-pio
