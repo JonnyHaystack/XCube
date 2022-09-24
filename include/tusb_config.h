@@ -77,13 +77,13 @@ extern "C" {
 // Size of buffer to hold descriptors and other data used for enumeration
 #define CFG_TUH_ENUMERATION_BUFSIZE 512
 
-#define CFG_TUH_XINPUT 1
+#define CFG_TUH_XINPUT 4
 
 #define CFG_TUD_ENABLED 0
 #define CFG_TUH_ENABLED 1
 #define CFG_TUH_HUB 1
 #define CFG_TUH_CDC 0
-#define CFG_TUH_HID 0
+#define CFG_TUH_HID 4
 #define CFG_TUH_MSC 0
 #define CFG_TUH_VENDOR 0
 

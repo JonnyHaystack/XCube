@@ -3,7 +3,7 @@
 #include <tusb.h>
 #include <xinput_host.h>
 
-volatile xinput_gamepad_t _xinput_report = {};
+extern volatile gc_report_t _gc_report;
 
 void tuh_xinput_report_received_cb(
     uint8_t dev_addr,
@@ -13,30 +13,17 @@ void tuh_xinput_report_received_cb(
 ) {
     xinputh_interface_t *xid_itf = (xinputh_interface_t *)report;
     xinput_gamepad_t *xinput_report = &xid_itf->pad;
-    const char *type_str;
-    switch (xid_itf->type) {
-        case 1:
-            type_str = "Xbox One";
-            break;
-        case 2:
-            type_str = "Xbox 360 Wireless";
-            break;
-        case 3:
-            type_str = "Xbox 360 Wired";
-            break;
-        case 4:
-            type_str = "Xbox OG";
-            break;
-        default:
-            type_str = "Unknown";
-    }
+    const char *type_str[] = {
+        "Unknown", "Xbox One", "Xbox 360 Wireless", "Xbox 360 Wired", "Xbox OG",
+    };
+    const size_t num_types = sizeof(type_str) / sizeof(type_str[0]);
 
     if (xid_itf->connected && xid_itf->new_pad_data) {
         TU_LOG1(
             "[%02x, %02x], Type: %s, Buttons %04x, LT: %02x RT: %02x, LX: %d, LY: %d, RX: %d, RY: %d\n",
             dev_addr,
             instance,
-            type_str,
+            xid_itf->type >= num_types ? type_str[0] : type_str[xid_itf->type],
             xinput_report->wButtons,
             xinput_report->bLeftTrigger,
             xinput_report->bRightTrigger,
@@ -46,13 +33,25 @@ void tuh_xinput_report_received_cb(
             xinput_report->sThumbRY
         );
 
-        _xinput_report.wButtons = xinput_report->wButtons;
-        _xinput_report.bLeftTrigger = xinput_report->bLeftTrigger;
-        _xinput_report.bRightTrigger = xinput_report->bRightTrigger;
-        _xinput_report.sThumbLX = xinput_report->sThumbLX;
-        _xinput_report.sThumbLY = xinput_report->sThumbLY;
-        _xinput_report.sThumbRX = xinput_report->sThumbRX;
-        _xinput_report.sThumbRY = xinput_report->sThumbRY;
+        // Translate XInput report to GameCube input report.
+        _gc_report.a = xinput_report->wButtons & XINPUT_GAMEPAD_A;
+        _gc_report.b = xinput_report->wButtons & XINPUT_GAMEPAD_B;
+        _gc_report.x = xinput_report->wButtons & XINPUT_GAMEPAD_X;
+        _gc_report.y = xinput_report->wButtons & XINPUT_GAMEPAD_Y;
+        _gc_report.start = xinput_report->wButtons & XINPUT_GAMEPAD_START;
+        _gc_report.dpad_left = xinput_report->wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
+        _gc_report.dpad_right = xinput_report->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
+        _gc_report.dpad_down = xinput_report->wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
+        _gc_report.dpad_up = xinput_report->wButtons & XINPUT_GAMEPAD_DPAD_UP;
+        _gc_report.z = xinput_report->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
+        _gc_report.r = xinput_report->bRightTrigger > 140;
+        _gc_report.l = xinput_report->bLeftTrigger > 140;
+        _gc_report.stick_x = (xinput_report->sThumbLX + 32768) / 257;
+        _gc_report.stick_y = (xinput_report->sThumbLY + 32768) / 257;
+        _gc_report.cstick_x = (xinput_report->sThumbRX + 32768) / 257;
+        _gc_report.cstick_y = (xinput_report->sThumbRY + 32768) / 257;
+        _gc_report.l_analog = xinput_report->bLeftTrigger;
+        _gc_report.r_analog = xinput_report->bRightTrigger;
     }
     tuh_xinput_receive_report(dev_addr, instance);
 }
