@@ -7,8 +7,25 @@
 #include <tusb.h>
 #include <xinput_host.h>
 
-#define GC_DATA_PIN 2
+#define REV1 10
+#define REV2 20
+#define REV2_2 22
 
+#define REVISION REV2
+#define WONKY false
+
+#if REVISION == REV1
+#define GC_DATA_PIN 0
+#elif REVISION == REV2 && !WONKY
+#define GC_DATA_PIN 0
+#define GC_3V3_PIN 1
+#elif REVISION == REV2 && WONKY
+#define GC_DATA_PIN 1
+#define GC_3V3_PIN 0
+#elif REVISION == REV2_2
+#define GC_DATA_PIN 28
+#define GC_3V3_PIN 27
+#endif
 void joybus_task();
 
 volatile gc_report_t _gc_report = default_gc_report;
@@ -21,13 +38,25 @@ int main() {
 
     // Debug serial output.
     uart_init(uart0, 115200);
-
     gpio_set_function(0, GPIO_FUNC_UART);
     gpio_set_function(1, GPIO_FUNC_UART);
 
+    // Turn on LED.
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     gpio_put(PICO_DEFAULT_LED_PIN, 1);
+
+#if REVISION >= REV2
+    // Reboot into bootsel mode if GC 3.3V not detected.
+    gpio_init(GC_3V3_PIN);
+    gpio_set_dir(GC_3V3_PIN, GPIO_IN);
+    gpio_pull_down(GC_3V3_PIN);
+
+    sleep_ms(200);
+
+    if (!gpio_get(GC_3V3_PIN))
+        reset_usb_boot(0, 0);
+#endif
 
     multicore_launch_core1(joybus_task);
 
