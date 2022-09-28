@@ -34,6 +34,7 @@ include_directories(
 
 add_executable(XCube
     src/main.cpp
+    src/filters.cpp
     src/xinput.cpp
     src/hid.cpp
     lib/joybus-pio/src/GamecubeConsole.cpp
