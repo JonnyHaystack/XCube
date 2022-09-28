@@ -29,9 +29,6 @@
 #define GC_3V3_PIN 27
 #endif
 
-uint8_t _deadzone = PERCENT_TO_STICK_VAL(6);
-uint8_t _radius = PERCENT_TO_STICK_VAL(80);
-
 void joybus_task();
 
 volatile gc_report_t _gc_report = default_gc_report;
@@ -96,14 +93,10 @@ void joybus_task() {
         gc_report.z = _gc_report.z;
         gc_report.r = _gc_report.r;
         gc_report.l = _gc_report.l;
-        gc_report.stick_x =
-            apply_radius(apply_deadzone(_gc_report.stick_x, _deadzone, true), _radius);
-        gc_report.stick_y =
-            apply_radius(apply_deadzone(_gc_report.stick_y, _deadzone, true), _radius);
-        gc_report.cstick_x =
-            apply_radius(apply_deadzone(_gc_report.cstick_x, _deadzone, true), _radius);
-        gc_report.cstick_y =
-            apply_radius(apply_deadzone(_gc_report.cstick_y, _deadzone, true), _radius);
+        gc_report.stick_x = _gc_report.stick_x;
+        gc_report.stick_y = _gc_report.stick_y;
+        gc_report.cstick_x = _gc_report.cstick_x;
+        gc_report.cstick_y = _gc_report.cstick_y;
         gc_report.l_analog = _gc_report.l_analog;
         gc_report.r_analog = _gc_report.r_analog;
 

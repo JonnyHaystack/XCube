@@ -1,9 +1,14 @@
+#include "filters.hpp"
+
 #include <GamecubeConsole.hpp>
 #include <pico/stdlib.h>
 #include <tusb.h>
 #include <xinput_host.h>
 
 extern volatile gc_report_t _gc_report;
+
+constexpr uint8_t _deadzone = PERCENT_TO_STICK_VAL(6);
+constexpr uint8_t _radius = PERCENT_TO_STICK_VAL(80);
 
 void tuh_xinput_report_received_cb(
     uint8_t dev_addr,
@@ -46,10 +51,22 @@ void tuh_xinput_report_received_cb(
         _gc_report.z = xinput_report->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
         _gc_report.r = xinput_report->bRightTrigger > 140;
         _gc_report.l = xinput_report->bLeftTrigger > 140;
-        _gc_report.stick_x = (xinput_report->sThumbLX + 32768) / 257;
-        _gc_report.stick_y = (xinput_report->sThumbLY + 32768) / 257;
-        _gc_report.cstick_x = (xinput_report->sThumbRX + 32768) / 257;
-        _gc_report.cstick_y = (xinput_report->sThumbRY + 32768) / 257;
+        _gc_report.stick_x = apply_radius(
+            apply_deadzone((xinput_report->sThumbLX + 32768) / 257, _deadzone, true),
+            _radius
+        );
+        _gc_report.stick_y = apply_radius(
+            apply_deadzone((xinput_report->sThumbLY + 32768) / 257, _deadzone, true),
+            _radius
+        );
+        _gc_report.cstick_x = apply_radius(
+            apply_deadzone((xinput_report->sThumbRX + 32768) / 257, _deadzone, true),
+            _radius
+        );
+        _gc_report.cstick_y = apply_radius(
+            apply_deadzone((xinput_report->sThumbRY + 32768) / 257, _deadzone, true),
+            _radius
+        );
         _gc_report.l_analog = xinput_report->bLeftTrigger;
         _gc_report.r_analog = xinput_report->bRightTrigger;
     }
