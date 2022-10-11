@@ -49,8 +49,9 @@ void tuh_xinput_report_received_cb(
         _gc_report.dpad_down = xinput_report->wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
         _gc_report.dpad_up = xinput_report->wButtons & XINPUT_GAMEPAD_DPAD_UP;
         _gc_report.z = xinput_report->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
-        _gc_report.r = xinput_report->bRightTrigger > 140;
-        _gc_report.l = xinput_report->bLeftTrigger > 140;
+        _gc_report.l = xinput_report->bLeftTrigger > 15;
+        _gc_report.r =
+            xinput_report->bRightTrigger > 15 && _gc_report.l && _gc_report.a && _gc_report.start;
         _gc_report.stick_x = apply_radius(
             apply_deadzone((xinput_report->sThumbLX + 32768) / 257, _deadzone, true),
             _radius
@@ -67,8 +68,8 @@ void tuh_xinput_report_received_cb(
             apply_deadzone((xinput_report->sThumbRY + 32768) / 257, _deadzone, true),
             _radius
         );
-        _gc_report.l_analog = xinput_report->bLeftTrigger;
-        _gc_report.r_analog = xinput_report->bRightTrigger;
+        _gc_report.l_analog = xinput_report->bLeftTrigger > 15 ? 140 : 0;
+        _gc_report.r_analog = xinput_report->bRightTrigger > 15 ? 49 : 0;
     }
     tuh_xinput_receive_report(dev_addr, instance);
 }
@@ -78,7 +79,7 @@ void tuh_xinput_mount_cb(
     uint8_t instance,
     const xinputh_interface_t *xinput_itf
 ) {
-    TU_LOG1("XINPUT MOUNTED %02x %d\n", dev_addr, instance);
+    TU_LOG2("XINPUT MOUNTED %02x %d\n", dev_addr, instance);
     // If this is a Xbox 360 Wireless controller we need to wait for a connection packet
     // on the in pipe before setting LEDs etc. So just start getting data until a controller is
     // connected.
@@ -93,5 +94,5 @@ void tuh_xinput_mount_cb(
 }
 
 void tuh_xinput_umount_cb(uint8_t dev_addr, uint8_t instance) {
-    TU_LOG1("XINPUT UNMOUNTED %02x %d\n", dev_addr, instance);
+    TU_LOG2("XINPUT UNMOUNTED %02x %d\n", dev_addr, instance);
 }
