@@ -4,9 +4,14 @@ set(PICO_SDK_PATH "~/source/pico-sdk-xinput/")
 
 include(pico_sdk_import.cmake)
 
-project(XCube CXX C ASM)
+set(PROJECT_NAME XCube)
+
+project(${PROJECT_NAME} CXX C ASM)
 
 pico_sdk_init()
+
+set(FAMILY rp2040)
+set(BOARD pico_sdk)
 
 # Adapted from https://cliutils.gitlab.io/modern-cmake/chapters/projects/submodule.html
 find_package(Git QUIET)
@@ -29,22 +34,22 @@ endif()
 include_directories(
     include
     lib/joybus-pio/include
-    lib/tusb_xinput
 )
 
-add_executable(XCube
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/tusb_xinput xinput_host)
+
+add_executable(${PROJECT_NAME}
     src/main.cpp
     src/filters.cpp
     src/xinput.cpp
     src/hid.cpp
     lib/joybus-pio/src/GamecubeConsole.cpp
     lib/joybus-pio/src/joybus.c
-    lib/tusb_xinput/xinput_host.c
 )
 
-pico_generate_pio_header(XCube ${CMAKE_CURRENT_LIST_DIR}/lib/joybus-pio/src/joybus.pio)
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/lib/joybus-pio/src/joybus.pio)
 
-target_link_libraries(XCube
+target_link_libraries(${PROJECT_NAME}
     pico_stdlib
     hardware_resets
     hardware_irq
@@ -52,6 +57,7 @@ target_link_libraries(XCube
     tinyusb_host
     tinyusb_board
     pico_multicore
+    xinput_host
 )
 
-pico_add_extra_outputs(XCube)
+pico_add_extra_outputs(${PROJECT_NAME})
