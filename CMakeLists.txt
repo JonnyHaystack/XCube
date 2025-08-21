@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
 
-set(PICO_SDK_PATH "~/source/pico-sdk-xinput/")
-
 include(pico_sdk_import.cmake)
 
 set(PROJECT_NAME XCube)
@@ -31,6 +29,16 @@ else()
     message("Git not found or not a git repo")
 endif()
 
+add_compile_definitions(
+    GC_DATA_PIN=$ENV{GC_DATA_PIN}
+)
+
+if (DEFINED $ENV{GC_3V3_PIN})
+    add_compile_definitions(
+        GC_3V3_PIN=$ENV{GC_3V3_PIN}
+    )
+endif ()
+
 include_directories(
     include
     lib/joybus-pio/include
@@ -51,12 +59,12 @@ pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/lib/joybus-pi
 
 target_link_libraries(${PROJECT_NAME}
     pico_stdlib
+    pico_multicore
     hardware_resets
     hardware_irq
     hardware_pio
     tinyusb_host
     tinyusb_board
-    pico_multicore
     xinput_host
 )
 
