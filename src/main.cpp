@@ -2,32 +2,13 @@
 
 #include <GamecubeConsole.hpp>
 #include <bsp/board.h>
+#include <hardware/clocks.h>
 #include <hardware/pio.h>
 #include <pico/bootrom.h>
 #include <pico/multicore.h>
 #include <pico/stdlib.h>
 #include <tusb.h>
 #include <xinput_host.h>
-
-#define REV1 10
-#define REV2 20
-#define REV2_2 22
-
-#define REVISION REV2
-#define WONKY false
-
-#if REVISION == REV1
-#define GC_DATA_PIN 0
-#elif REVISION == REV2 && !WONKY
-#define GC_DATA_PIN 0
-#define GC_3V3_PIN 1
-#elif REVISION == REV2 && WONKY
-#define GC_DATA_PIN 1
-#define GC_3V3_PIN 0
-#elif REVISION == REV2_2
-#define GC_DATA_PIN 28
-#define GC_3V3_PIN 27
-#endif
 
 void joybus_task();
 
@@ -37,7 +18,7 @@ int main() {
     board_init();
 
     // Required for joybus-pio.
-    set_sys_clock_khz(130'000, true);
+    set_sys_clock_khz(200'000, true);
 
     // Debug serial output.
     uart_init(uart0, 115200);
@@ -49,7 +30,7 @@ int main() {
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     gpio_put(PICO_DEFAULT_LED_PIN, 1);
 
-#if REVISION >= REV2
+#ifdef GC_3V3_PIN
     // Reboot into bootsel mode if GC 3.3V not detected.
     gpio_init(GC_3V3_PIN);
     gpio_set_dir(GC_3V3_PIN, GPIO_IN);
@@ -57,8 +38,9 @@ int main() {
 
     sleep_ms(200);
 
-    if (!gpio_get(GC_3V3_PIN))
-        reset_usb_boot(0, 0);
+    if (!gpio_get(GC_3V3_PIN)) {
+	reset_usb_boot(0, 0);
+    }
 #endif
 
     multicore_launch_core1(joybus_task);

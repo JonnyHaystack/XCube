@@ -10,25 +10,29 @@ extern volatile gc_report_t _gc_report;
 constexpr uint8_t _deadzone = PERCENT_TO_STICK_VAL(6);
 constexpr uint8_t _radius = PERCENT_TO_STICK_VAL(80);
 
+const usbh_class_driver_t *usbh_app_driver_get_cb(uint8_t *driver_count) {
+    *driver_count = 1;
+    return &usbh_xinput_driver;
+}
+
 void tuh_xinput_report_received_cb(
     uint8_t dev_addr,
     uint8_t instance,
-    const uint8_t *report,
+    const xinputh_interface_t *xinput_itf,
     uint16_t len
 ) {
-    xinputh_interface_t *xid_itf = (xinputh_interface_t *)report;
-    xinput_gamepad_t *xinput_report = &xid_itf->pad;
+    const xinput_gamepad_t *xinput_report = &xinput_itf->pad;
     const char *type_str[] = {
         "Unknown", "Xbox One", "Xbox 360 Wireless", "Xbox 360 Wired", "Xbox OG",
     };
     const size_t num_types = sizeof(type_str) / sizeof(type_str[0]);
 
-    if (xid_itf->connected && xid_itf->new_pad_data) {
+    if (xinput_itf->connected && xinput_itf->new_pad_data) {
         TU_LOG1(
             "[%02x, %02x], Type: %s, Buttons %04x, LT: %02x RT: %02x, LX: %d, LY: %d, RX: %d, RY: %d\n",
             dev_addr,
             instance,
-            xid_itf->type >= num_types ? type_str[0] : type_str[xid_itf->type],
+            xinput_itf->type >= num_types ? type_str[0] : type_str[xinput_itf->type],
             xinput_report->wButtons,
             xinput_report->bLeftTrigger,
             xinput_report->bRightTrigger,

@@ -1,4 +1,4 @@
-DisableFormat: false
+---
 AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: Left
 AlignConsecutiveMacros: false
@@ -36,7 +36,7 @@ PackConstructorInitializers: CurrentLine
 PenaltyReturnTypeOnItsOwnLine: 2000
 PointerAlignment: Right
 QualifierAlignment: Custom
-QualifierOrder: ['inline', 'static', 'const', 'constexpr', 'restrict', 'volatile', 'type']
+QualifierOrder: ['inline', 'static', 'constexpr', 'const', 'restrict', 'volatile', 'type']
 ReferenceAlignment: Right
 ReflowComments: true
 SeparateDefinitionBlocks: Always
@@ -57,3 +57,6 @@ SpaceBeforeCtorInitializerColon: true
 SpacesInContainerLiterals: false
 TabWidth: 4
 UseTab: Never
+---
+Language: Proto
+ColumnLimit: 100
